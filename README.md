@@ -59,4 +59,23 @@ python gitprofile.py
 ```
 
 ## Setup script to PATH to use from place
-TODO: add content
+* create _~/bin_ (if it doesn't exit)
+* add _bin_ folder to PATH (if it isn't so), you can also make it in _.bashrc_ to make it constant 
+```bash
+export PATH=$PATH:/home/el/bin
+```
+* copy _gitprofile.py_ to  _bin_
+```bash
+cd github-prfile-switcher
+cp gitprofile.py ~/gitprofile
+```
+* make it executable
+```bash
+chmod +x ~/bin/gitprofile
+```
+* Call it in any place
+```bash
+gitprofile work #work profile
+gitprofile home #home profile
+gitprofile #work profile by default
+```
