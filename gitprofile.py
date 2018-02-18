@@ -8,12 +8,6 @@ from subprocess import Popen, PIPE
 
 HOME_DIR = expanduser("~")
 
-HOME_USER = environ.get('HOME_GIT_USER')
-HOME_EMAIL = environ.get('HOME_GIT_EMAIL')
-
-WORK_USER = environ.get('WORK_GIT_USER')
-WORK_EMAIL = environ.get('WORK_GIT_EMAIL')
-
 gitconfig_template = """
 [user]
         email = {email}
@@ -27,20 +21,37 @@ gitconfig_template = """
 """
 
 def crear_git_cache():
+    print "Clearing keychain for github account..."
     if exists(HOME_DIR + '/.git-credentials'):
         remove(HOME_DIR + '/.git-credentials')
     p = Popen(['git credential-osxkeychain erase'], stdin=PIPE, shell=True)
     p.communicate(input='host=github.com\nprotocol=https\n')
 
+def get_git_credentians_from_env(profile):
+    print "Checking env variables..."
+    if profile == 'work':
+        if 'WORK_GIT_USER' not in environ:
+            raise ValueError('WORK_GIT_USER missing in env variables.')
+        if 'WORK_GIT_EMAIL' not in environ:
+            raise ValueError('WORK_GIT_EMAIL missing in env variables.')
+        return (environ.get('WORK_GIT_USER'), environ.get('WORK_GIT_EMAIL'))
+    elif profile == 'home':
+        if 'HOME_GIT_USER' not in environ:
+            raise ValueError('HOME_GIT_USER missing in env variables.')
+        if 'HOME_GIT_EMAIL' not in environ:
+            raise ValueError('HOME_GIT_EMAIL missing in env variables.')
+        return (environ.get('HOME_GIT_USER'), environ.get('HOME_GIT_EMAIL'))
+    else:
+        raise ValueError('Invalid git profile, only work|home are supported')
+
 
 def generate_git_config(profile_type):
-
+    user, email =  get_git_credentians_from_env(profile_type)
+    print "Generating new ~/.gitconfig file..."
     with io.FileIO(HOME_DIR + "/.gitconfig", "w") as file:
-        if profile_type == 'work':
-            file.write(gitconfig_template.format(email=WORK_EMAIL, user=WORK_USER))
-        else:
-            file.write(gitconfig_template.format(email=HOME_EMAIL, user=HOME_USER))
+        file.write(gitconfig_template.format(user=user, email=email))
 
+    print "Git config (~/.gitconfig) was successfully generated for {user}({email})".format(user=user, email=email)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="The script generates " +
